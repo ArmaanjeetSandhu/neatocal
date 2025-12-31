@@ -68,9 +68,27 @@ var NEATOCAL_PARAM = {
   //
   "weekday_code" : [ "Su", "M", "T", "W", "R", "F", "Sa"  ],
 
+  // Weekday representation https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#weekday
+  //
+  //   long
+  //   short
+  //   narrow
+  //
+  "weekday_format": "short",
+
   // text to sue for month header
   //
   "month_code": [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ],
+
+  // Month representation https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#month
+  //
+  //   numeric
+  //   2-digit
+  //   long
+  //   short
+  //   narrow
+  //
+  "month_format": "short",
 
   // weekend days (0=Sun, 1=Mon, ..., 5=Fri, 6=Sat)
   // Default Sunday Monday.
@@ -384,7 +402,7 @@ function localized_day(locale, day_idx) {
   let iday = 17 + day_idx;
   let s = '1995-12-' + iday.toString() + 'T12:00:01Z';
   let d = new Date(s);
-  return d.toLocaleDateString(locale, {"weekday":"short"});
+  return d.toLocaleDateString(locale, {"weekday":NEATOCAL_PARAM.weekday_format});
 }
 
 function localized_month(locale, mo_idx) {
@@ -392,7 +410,7 @@ function localized_month(locale, mo_idx) {
   let imo_str = ((imo < 10) ? ("0" + imo.toString()) : imo.toString());
   let s = '1995-' + imo_str + '-18T12:00:01Z';
   let d = new Date(s);
-  return d.toLocaleDateString(locale, {"month":"short"});
+  return d.toLocaleDateString(locale, {"month":NEATOCAL_PARAM.month_format});
 }
 
 function neatocal_hallon_almanackan() {
@@ -859,7 +877,9 @@ function neatocal_override_param(param, data) {
     "n_month",
 
     "weekday_code",
+    "weekday_format",
     "month_code",
+    "month_format",
 
     "weekend_days",
 
@@ -974,7 +994,9 @@ function neatocal_init() {
   let highlight_color_param = sp.get("highlight_color");
   let cell_height_param = sp.get("cell_height");
   let weekday_code_param = sp.get("weekday_code");
+  let weekday_format_param = sp.get("weekday_format");
   let month_code_param = sp.get("month_code");
+  let month_format_param = sp.get("month_format");
   let language_param = sp.get("language");
   let show_week_numbers_param = sp.get("show_week_numbers");
 
@@ -1106,6 +1128,18 @@ function neatocal_init() {
     cell_height = cell_height_param;
   }
   NEATOCAL_PARAM.cell_height = cell_height;
+
+  //---
+
+  if (new Set(["long", "short", "narrow"]).has(weekday_format_param)) {
+    NEATOCAL_PARAM.weekday_format = weekday_format_param;
+  }
+
+  //---
+
+  if (new Set(["numeric", "2-digit", "long", "short", "narrow"]).has(month_format_param)) {
+    NEATOCAL_PARAM.month_format = month_format_param;
+  }
 
   //---
 
