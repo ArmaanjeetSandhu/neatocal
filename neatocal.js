@@ -984,6 +984,8 @@ function neatocal_override_param(param, data) {
     "moon_phase_position",
     "moon_phase_display",
 
+    "show_week_numbers",
+
     "cell_height",
     "highlight_color",
     "today_highlight_color",
