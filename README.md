@@ -3,7 +3,7 @@ NeatoCal
 
 A neato calendar with the full year on a single page.
 
-Based on the very awesome [Neatnik's Calendar](https://neatnik.net/dispenser/?project=calendar) project.
+Based on the very awesome [Neatnik's Calendar](https://www.neatnik.net/calendar/) project.
 
 This is a JavaScript port with added parameters (see below) and designed to be "dependency free" with all files local.
 
@@ -158,7 +158,7 @@ Notes:
 Misc
 ---
 
-Neatnik's original repo has [since moved](https://neatnik.net/dispenser/?project=calendar) but the legacy GitHub repo can be found [here](https://neatnik.net/dispenser/?project=calendar).
+Neatnik's original repo can be found at [source.tube/neatnik/calendar](https://source.tube/neatnik/calendar).
 
 License
 ---
