@@ -150,6 +150,13 @@ ICS Import (Drag-and-drop)
 You can drop one or more `.ics` calendar files onto the page to import events on the fly.
 Imported events are displayed in each day cell, and multi-day events render as a new entry each day
 
+![ICS drag-n-drop import video demo](img/neatocal_ics_dnd.gif)
+
+Using the `ics` URL parameter will make the drag-and-drop interface appear on initial load and disappear after
+an ICS file is loaded.
+
+An example ICS file is located in `example/example.ics`.
+
 Notes:
 - Recurrence rules (`RRULE`) are currently ignored.
 - All-day and timed events are supported; all-day events use the end date as exclusive.
