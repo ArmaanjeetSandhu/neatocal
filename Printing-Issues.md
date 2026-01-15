@@ -5,6 +5,11 @@ This is a document dedicated to issues arising when trying
 to print the [NeatoCal](https://github.com/abetusk/neatocal) single
 page calendar.
 
+* [How Do I Print](#how-do-i-print)
+* [How Do I Print in Larger Sizes](#how-do-i-print-in-larger-sizes)
+* [Printing Produces Multiple Pages](#printing-produces-multiple-pages)
+* [The Issue Isn't Listed Here or Solutions Don't Work](#the-issue-isnt-listed-here-or-solutions-dont-work)
+
 ### How Do I Print?
 
 Use the browser `Print` command.
