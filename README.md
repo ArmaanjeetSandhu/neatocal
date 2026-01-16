@@ -96,12 +96,15 @@ Data File
 ---
 
 There is a data file option that can be used to provide parameters or text in the day cells.
+The `data` value can be an absolute URL like `?data=https://example.com/data.json`.
+The only caveats are browser rules: the remote host must allow CORS (e.g. `Access-Control-Allow-Origin`),
+and mixed-content rules apply (HTTPS page can’t load HTTP JSON).
 
 The format is:
 
 ```
 {
-  "param" {
+  "param": {
     ...
     "color_cell" : [
       { "date":"YYYY-MM-DD", "color":"#rgb" },
