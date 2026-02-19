@@ -19,6 +19,8 @@ Screenshots
 
 [![hallon almanackan](img/neatocal_ha.png)](https://abetusk.github.io/neatocal?layout=hallon-almanackan)
 
+[![weekly grid](img/neatocal_wg.png)](https://abetusk.github.io/neatocal?layout=weekly-grid)
+
 Parameters
 ---
 
