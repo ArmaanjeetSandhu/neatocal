@@ -1784,8 +1784,8 @@ function neatocal_init() {
   if ((n_month_param != null) &&
       (typeof n_month_param !== "undefined")) {
     n_month = parseInt(n_month_param);
-    if (isNaN(n_month)) {
-      n_month = 0;
+    if (isNaN(n_month) || n_month <= 0) {
+      n_month = 12;
     }
   }
   NEATOCAL_PARAM.n_month = n_month;
@@ -2034,7 +2034,11 @@ function neatocal_render() {
   }
 
   for (let i=0; i < year_fraction.length; i++) {
-    year_fraction[i] /= year_fraction_tot;
+    if (year_fraction_tot > 0) {
+      year_fraction[i] /= year_fraction_tot;
+    } else {
+      year_fraction[i] = 0;
+    }
   }
 
   // if we only have one year, put it in the center
