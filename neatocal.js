@@ -930,18 +930,18 @@ function neatocal_weekly_grid() {
   th_month.style.borderBottom = "1.15px solid #333";
   ui_tr_mo.appendChild(th_month);
 
-  if (NEATOCAL_PARAM.show_week_numbers) {
-    let th_wk = H.th("Wk");
-    th_wk.style.borderBottom = "1.15px solid #333";
-    ui_tr_mo.appendChild(th_wk);
-  }
-
   for (let i = 0; i < 7; i++) {
     let wd_idx = (start_day + i) % 7;
     let th_wd = H.th( NEATOCAL_PARAM.weekday_code[ wd_idx ] );
     th_wd.style.borderBottom = "1.15px solid #333"; 
     weekday_styles(th_wd);
     ui_tr_mo.appendChild(th_wd);
+  }
+
+  if (NEATOCAL_PARAM.show_week_numbers) {
+    let th_wk = H.th("Wk");
+    th_wk.style.borderBottom = "1.15px solid #333";
+    ui_tr_mo.appendChild(th_wk);
   }
 
   let tbody = document.getElementById("ui_tbody");
@@ -1007,24 +1007,7 @@ function neatocal_weekly_grid() {
     }
     tr.appendChild(td_month);
 
-    if (NEATOCAL_PARAM.show_week_numbers) {
-      let td_wn = H.td();
-      td_wn.style.width = "4%";
-      
-      if (week_month !== next_week_month || is_last_row) {
-        td_wn.style.borderBottom = "1.15px solid #333";
-      }
-
-      if (week_month % 2 === 1) {
-        td_wn.classList.add("weekend"); 
-      }
-
-      let span_week_no = H.span(getISOWeekNumber(curr_date), "date");
-      span_week_no.style.color = "rgb(230,37,7)";
-      week_styles(span_week_no);
-      td_wn.appendChild(span_week_no);
-      tr.appendChild(td_wn);
-    }
+    let week_number_date = new Date(curr_date); 
 
     for (let i = 0; i < 7; i++) {
       let td = H.td();
@@ -1069,6 +1052,17 @@ function neatocal_weekly_grid() {
       tr.appendChild(td);
 
       curr_date.setDate(curr_date.getDate() + 1);
+    }
+
+    if (NEATOCAL_PARAM.show_week_numbers) {
+      let td_wn = H.td();
+      td_wn.style.width = "4%";
+
+      let span_week_no = H.span(getISOWeekNumber(week_number_date), "date");
+      span_week_no.style.color = "rgb(230,37,7)";
+      week_styles(span_week_no);
+      td_wn.appendChild(span_week_no);
+      tr.appendChild(td_wn);
     }
     
     tbody.appendChild(tr);
