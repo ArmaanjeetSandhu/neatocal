@@ -1506,6 +1506,34 @@ function ics_handle_files(file_list) {
   });
 }
 
+function ics_remove_calendar(source_id) {
+  NEATOCAL_PARAM.ics_imports = NEATOCAL_PARAM.ics_imports.filter(function(item) {
+    return item.id !== source_id;
+  });
+
+  let keys = Object.keys(NEATOCAL_PARAM.data);
+  for (let k = 0; k < keys.length; k++) {
+    let key = keys[k];
+    if (key === '__base') continue;
+    
+    let val = NEATOCAL_PARAM.data[key];
+    if (!Array.isArray(val)) continue;
+
+    let filtered_val = val.filter(function(event) {
+      return event.source_id !== source_id;
+    });
+
+    if (filtered_val.length === 0) {
+      delete NEATOCAL_PARAM.data[key];
+    } else {
+      NEATOCAL_PARAM.data[key] = filtered_val;
+    }
+  }
+
+  render_ics_legend();
+  neatocal_render();
+}
+
 function render_ics_legend() {
   let legend = document.getElementById("ics_legend");
   if (!legend) { return; }
@@ -1598,8 +1626,23 @@ function render_ics_legend() {
       input.select();
     });
 
+    let remove_btn = H.span();
+    remove_btn.classList.add("ics-legend-remove");
+    remove_btn.innerHTML = "&times;";
+    remove_btn.title = "Remove calendar";
+    remove_btn.dataset.id = item.id.toString();
+    
+    remove_btn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      let id = parseInt(e.target.dataset.id, 10);
+      if (!isNaN(id)) {
+        ics_remove_calendar(id);
+      }
+    });
+
     row.appendChild(swatch);
     row.appendChild(name);
+    row.appendChild(remove_btn);
     legend.appendChild(row);
   }
 }
