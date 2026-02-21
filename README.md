@@ -164,7 +164,7 @@ an ICS file is loaded.
 An example ICS file is located in `example/example.ics`.
 
 Notes:
-- Recurrence rules (`RRULE`) are currently ignored.
+- Recurrence rules (`RRULE`) are supported for standard frequencies and intervals (`FREQ`, `INTERVAL`, `UNTIL`, `COUNT`, `BYDAY`, `BYMONTHDAY`, `BYMONTH`).
 - All-day and timed events are supported; all-day events use the end date as exclusive.
 
 

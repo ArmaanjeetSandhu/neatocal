@@ -1371,11 +1371,13 @@ function ics_text_color_for_index(idx) {
 function ics_expand_event(event, color, text_color, source_id, view_start, view_end) {
   if (!event.dtstart) { return; }
 
-  let start_parsed = ics_parse_datetime(event.dtstart.value, event.dtstart.params);
+  let start_parsed = event._parsed_start || ics_parse_datetime(event.dtstart.value, event.dtstart.params);
   if (!start_parsed) { return; }
 
   let end_parsed = null;
-  if (event.dtend) {
+  if (event._parsed_end) {
+    end_parsed = event._parsed_end;
+  } else if (event.dtend) {
     end_parsed = ics_parse_datetime(event.dtend.value, event.dtend.params);
   }
 
@@ -1424,15 +1426,143 @@ function ics_expand_event(event, color, text_color, source_id, view_start, view_
   }
 }
 
+function ics_expand_rrule_event(event, color, text_color, source_id, view_start, view_end) {
+  let start_parsed = ics_parse_datetime(event.dtstart.value, event.dtstart.params);
+  if (!start_parsed) return;
+
+  let rules = {};
+  if (!event.rrule) return;
+  event.rrule.split(';').forEach(p => {
+    let kv = p.split('=');
+    if (kv.length === 2) rules[kv[0]] = kv[1];
+  });
+
+  let freq = rules['FREQ'];
+  let interval = parseInt(rules['INTERVAL']) || 1;
+  let until = rules['UNTIL'] ? ics_parse_datetime(rules['UNTIL'], "").date : null;
+  let count = rules['COUNT'] ? parseInt(rules['COUNT']) : null;
+
+  let byday = rules['BYDAY'] ? rules['BYDAY'].split(',') : null;
+  let bymonthday = rules['BYMONTHDAY'] ? rules['BYMONTHDAY'].split(',').map(Number) : null;
+  let bymonth = rules['BYMONTH'] ? rules['BYMONTH'].split(',').map(Number) : null;
+
+  let duration = 0;
+  let end_parsed = null;
+  if (event.dtend) {
+    end_parsed = ics_parse_datetime(event.dtend.value, event.dtend.params);
+    if (end_parsed) duration = end_parsed.date.getTime() - start_parsed.date.getTime();
+  }
+
+  let current_date = new Date(start_parsed.date.getTime());
+  let occurrences = 0;
+  let iter = 0;
+  let day_map = {"SU":0, "MO":1, "TU":2, "WE":3, "TH":4, "FR":5, "SA":6};
+  let wkst = rules['WKST'] ? day_map[rules['WKST']] : 1; 
+
+  let complex = byday || bymonthday || bymonth;
+
+  while (iter < 200000) { // Safeguard to prevent infinite loops
+    iter++;
+    if (until && current_date > until) break;
+    if (count !== null && occurrences >= count) break;
+    if (current_date > view_end) break;
+
+    let match = true;
+
+    if (complex) {
+      if (freq === 'DAILY') {
+        let days_diff = Math.round((current_date.getTime() - start_parsed.date.getTime()) / 86400000);
+        if (days_diff % interval !== 0) match = false;
+      } else if (freq === 'WEEKLY') {
+        let start_day_offset = (start_parsed.date.getDay() - wkst + 7) % 7;
+        let days_diff = Math.round((current_date.getTime() - start_parsed.date.getTime()) / 86400000);
+        let weeks_diff = Math.floor((days_diff + start_day_offset) / 7);
+        if (weeks_diff % interval !== 0) match = false;
+      } else if (freq === 'MONTHLY') {
+        let months_diff = (current_date.getFullYear() - start_parsed.date.getFullYear()) * 12 + (current_date.getMonth() - start_parsed.date.getMonth());
+        if (months_diff % interval !== 0) match = false;
+      } else if (freq === 'YEARLY') {
+        let years_diff = current_date.getFullYear() - start_parsed.date.getFullYear();
+        if (years_diff % interval !== 0) match = false;
+      }
+
+      if (bymonth && !bymonth.includes(current_date.getMonth() + 1)) match = false;
+      if (bymonthday && !bymonthday.includes(current_date.getDate())) match = false;
+      
+      if (byday) {
+        let d_str = Object.keys(day_map).find(key => day_map[key] === current_date.getDay());
+        let has_day_match = false;
+        for (let i = 0; i < byday.length; i++) {
+          let bd = byday[i];
+          if (bd.endsWith(d_str)) {
+            let prefix = bd.replace(/[A-Z]+$/, '');
+            if (!prefix) {
+              has_day_match = true;
+              break;
+            }
+            let n = parseInt(prefix);
+            let is_match = false;
+            let d = current_date.getDate();
+            if (n > 0) {
+              is_match = Math.ceil(d / 7) === n;
+            } else if (n < 0) {
+              let days_in_month = new Date(current_date.getFullYear(), current_date.getMonth() + 1, 0).getDate();
+              is_match = Math.ceil((days_in_month - d + 1) / 7) === Math.abs(n);
+            }
+            if (is_match) {
+              has_day_match = true;
+              break;
+            }
+          }
+        }
+        if (!has_day_match) match = false;
+      }
+    } else {
+      match = true;
+    }
+
+    if (match) {
+      let ev_end = new Date(current_date.getTime() + duration);
+      if (ev_end >= view_start && current_date <= view_end) {
+        let synth = Object.assign({}, event);
+        delete synth.rrule;
+        synth._parsed_start = { date: new Date(current_date.getTime()), all_day: start_parsed.all_day };
+        if (end_parsed) {
+          synth._parsed_end = { date: ev_end, all_day: end_parsed.all_day };
+        }
+        ics_expand_event(synth, color, text_color, source_id, view_start, view_end);
+      }
+      occurrences++;
+    }
+
+    if (complex) {
+      current_date.setDate(current_date.getDate() + 1);
+    } else {
+      if (freq === 'DAILY') {
+        current_date.setDate(current_date.getDate() + interval);
+      } else if (freq === 'WEEKLY') {
+        current_date.setDate(current_date.getDate() + 7 * interval);
+      } else if (freq === 'MONTHLY') {
+        current_date.setMonth(current_date.getMonth() + interval);
+      } else if (freq === 'YEARLY') {
+        current_date.setFullYear(current_date.getFullYear() + interval);
+      } else {
+        break;
+      }
+    }
+  }
+}
+
 function ics_import_text(raw, color, text_color, source_id) {
   let events = ics_parse_events(raw);
   let view = get_view_range();
 
   for (let i = 0; i < events.length; i++) {
     if (events[i].rrule) {
-      continue;
+      ics_expand_rrule_event(events[i], color, text_color, source_id, view.start, view.end);
+    } else {
+      ics_expand_event(events[i], color, text_color, source_id, view.start, view.end);
     }
-    ics_expand_event(events[i], color, text_color, source_id, view.start, view.end);
   }
 }
 
